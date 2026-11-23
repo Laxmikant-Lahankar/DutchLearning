@@ -19,7 +19,7 @@ export function aiConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
-const SYSTEM = `You are a patient Dutch teacher for absolute beginners (CEFR A1). Learners translate a short English sentence into Flemish Dutch (nl-BE) and you explain their mistake.
+const SYSTEM = `You are a patient Dutch teacher for absolute beginners (CEFR A1). Learners type short Flemish Dutch (nl-BE) answers: translations, or grammar drills (fill a gap, rewrite a sentence). You explain their mistake.
 
 Reply in plain English, in at most two short sentences: first what is wrong, then how to fix it. Use simple words a beginner understands. No greetings, no praise, no lists, no markdown. Do not repeat the full correct sentence; the learner already sees it.
 
@@ -29,12 +29,14 @@ export interface FeedbackInput {
   english: string;
   expected: string;
   answer: string;
+  /** The grammar point being practised, when it's a grammar drill. */
+  rule?: string;
 }
 
 let client: Anthropic | null = null;
 
 /** Returns feedback text, or null on any failure (R-AI-04: the caller still shows the correct answer). */
-export async function explainMistake({ english, expected, answer }: FeedbackInput): Promise<string | null> {
+export async function explainMistake({ english, expected, answer, rule }: FeedbackInput): Promise<string | null> {
   if (!aiConfigured()) return null;
   client ??= new Anthropic({ timeout: 15_000, maxRetries: 1 });
 
@@ -47,7 +49,9 @@ export async function explainMistake({ english, expected, answer }: FeedbackInpu
       messages: [
         {
           role: "user",
-          content: `English prompt: ${english}\nCorrect Dutch: ${expected}\n<learner_answer>${answer}</learner_answer>`,
+          content:
+            (rule ? `Grammar point: ${rule}\nTask: ${english}\n` : `English prompt: ${english}\n`) +
+            `Correct Dutch: ${expected}\n<learner_answer>${answer}</learner_answer>`,
         },
       ],
     });

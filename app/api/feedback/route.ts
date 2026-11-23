@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { aiConfigured, aiDailyLimit, explainMistake } from "@/lib/ai";
+import { drillEnglish, drillSolution, getGrammar } from "@/lib/grammar";
 import { getLesson } from "@/lib/lessons";
-import { WRITE_PASS, similarity } from "@/lib/match";
+import { WRITE_PASS, gradeDrill, similarity } from "@/lib/match";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 const Body = z.object({
+  kind: z.enum(["write", "grammar"]).default("write"),
   lessonId: z.string().max(64),
   index: z.number().int().min(0).max(50),
   answer: z.string().max(200),
@@ -22,17 +24,34 @@ function reply(body: FeedbackResponse, status = 200) {
   return NextResponse.json(body, { status });
 }
 
+/** The expected answer always comes from our own content, never from the browser. */
+function lookup(kind: "write" | "grammar", lessonId: string, index: number, answer: string) {
+  if (kind === "write") {
+    const phrase = getLesson(lessonId)?.phrases[index];
+    if (!phrase) return null;
+    return { english: phrase.en, expected: phrase.nl, wrong: similarity(answer, phrase.nl) < WRITE_PASS, rule: undefined };
+  }
+  const lesson = getGrammar(lessonId);
+  const drill = lesson?.drills[index];
+  if (!lesson || !drill) return null;
+  return {
+    english: drillEnglish(drill),
+    expected: drillSolution(drill),
+    wrong: !gradeDrill(answer, drill.answers, drill.kind === "gap" ? drill.text : undefined),
+    rule: lesson.title,
+  };
+}
+
 export async function POST(request: Request) {
   const parsed = Body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return reply({ status: "unavailable" }, 400);
 
-  // The expected answer comes from our own content, never from the browser.
-  const phrase = getLesson(parsed.data.lessonId)?.phrases[parsed.data.index];
-  if (!phrase) return reply({ status: "unavailable" }, 400);
+  const { kind, lessonId, index, answer } = parsed.data;
+  const item = lookup(kind, lessonId, index, answer);
+  if (!item) return reply({ status: "unavailable" }, 400);
 
-  const { answer } = parsed.data;
   // Only wrong answers get AI feedback (R-AI-01, R-NF-05).
-  if (!answer.trim() || similarity(answer, phrase.nl) >= WRITE_PASS) return reply({ status: "unavailable" });
+  if (!answer.trim() || !item.wrong) return reply({ status: "unavailable" });
   if (!aiConfigured()) return reply({ status: "unavailable" });
 
   const supabase = await createClient().catch(() => null);
@@ -49,6 +68,6 @@ export async function POST(request: Request) {
   }
   if (count === null) return reply({ status: "limit" });
 
-  const feedback = await explainMistake({ english: phrase.en, expected: phrase.nl, answer });
+  const feedback = await explainMistake({ english: item.english, expected: item.expected, answer, rule: item.rule });
   return reply(feedback ? { status: "ok", feedback } : { status: "unavailable" });
 }

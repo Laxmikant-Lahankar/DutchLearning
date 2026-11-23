@@ -4,7 +4,7 @@
 create table public.progress (
   user_id      uuid        not null references auth.users (id) on delete cascade,
   lesson_id    text        not null,
-  skill        text        not null check (skill in ('read', 'listen', 'write', 'speak')),
+  skill        text        not null check (skill in ('read', 'grammar', 'listen', 'write', 'speak')),
   score        smallint    not null check (score between 0 and 100), -- percentage
   completed_at timestamptz not null default now(),
   primary key (user_id, lesson_id, skill)

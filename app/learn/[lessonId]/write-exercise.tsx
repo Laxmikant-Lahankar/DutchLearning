@@ -1,25 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { FeedbackResponse } from "@/app/api/feedback/route";
 import { gradeWrite, type WriteResult } from "@/lib/match";
 import { percent } from "@/lib/quiz";
 import { type ExerciseProps, type SaveState, ScoreSummary } from "./lesson-player";
-
-type Feedback = { state: "loading" } | FeedbackResponse;
-
-async function fetchFeedback(lessonId: string, index: number, answer: string): Promise<FeedbackResponse> {
-  try {
-    const res = await fetch("/api/feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lessonId, index, answer }),
-    });
-    return (await res.json()) as FeedbackResponse;
-  } catch {
-    return { status: "unavailable" };
-  }
-}
+import { type Feedback, fetchFeedback } from "./typed-answer";
 
 export function WriteExercise({ lesson, next, onNext, onComplete }: ExerciseProps) {
   const total = lesson.phrases.length;
@@ -57,7 +42,7 @@ export function WriteExercise({ lesson, next, onNext, onComplete }: ExerciseProp
     // Wrong: the correct answer shows straight away; the explanation follows if it arrives (R-AI-04).
     setFeedback({ state: "loading" });
     const asked = index;
-    const reply = await fetchFeedback(lesson.id, asked, answer);
+    const reply = await fetchFeedback("write", lesson.id, asked, answer);
     // Ignore a late reply if the learner has already moved on.
     if (currentIndex.current === asked) setFeedback(reply);
   }

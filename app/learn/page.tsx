@@ -7,7 +7,7 @@ import { doneSkills, getMyProgress } from "@/lib/progress";
 export const metadata: Metadata = { title: "My lessons" };
 export const dynamic = "force-dynamic";
 
-const LABEL = { read: "Read", listen: "Listen", write: "Write", speak: "Speak" } as const;
+const LABEL = { read: "Read", grammar: "Grammar", listen: "Listen", write: "Write", speak: "Speak" } as const;
 
 export default async function Learn() {
   const rows = await getMyProgress();
@@ -63,7 +63,7 @@ export default async function Learn() {
                     {SKILLS.map((s) => <span key={s} data-done={done.has(s)} />)}
                   </span>
                   <span>
-                    {done.size === SKILLS.length ? "Complete" : `${done.size} of 4`}
+                    {done.size === SKILLS.length ? "Complete" : `${done.size} of ${SKILLS.length}`}
                     <span className="sr-only">{doneNames.length ? `: ${doneNames.join(", ")} done` : ""}</span>
                   </span>
                 </span>

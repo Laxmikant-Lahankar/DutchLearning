@@ -27,13 +27,17 @@ export default function Home() {
         <div className="container">
           <div className="measure">
             <p className="eyebrow">How a lesson works</p>
-            <h2>Every phrase, four ways.</h2>
-            <p className="muted">Short lessons for daily life, about ten minutes each. A1 is free; no card needed.</p>
+            <h2>You type every answer.</h2>
+            <p className="muted">
+              No tapping, no dragging tiles. Writing the Dutch yourself is what makes it stick. Each lesson is a handful of
+              phrases for daily life and one piece of grammar, about ten minutes. A1 is free; no card needed.
+            </p>
           </div>
           <ul className="plain skill-list">
             <li><span className="skill-verb" lang="nl-BE">lezen</span><h3>Read</h3><p>The Dutch and the English side by side, with audio for every phrase.</p></li>
-            <li><span className="skill-verb" lang="nl-BE">luisteren</span><h3>Listen</h3><p>Hear a phrase, then pick what it means.</p></li>
-            <li><span className="skill-verb" lang="nl-BE">schrijven</span><h3>Write</h3><p>Type it in Dutch. Small typos still count, and a wrong answer comes with a short tip.</p></li>
+            <li><span className="skill-verb" lang="nl-BE">grammatica</span><h3>Grammar</h3><p>One rule, explained in plain English, then practised by typing.</p></li>
+            <li><span className="skill-verb" lang="nl-BE">luisteren</span><h3>Listen</h3><p>Hear a phrase and type what you heard.</p></li>
+            <li><span className="skill-verb" lang="nl-BE">schrijven</span><h3>Write</h3><p>See the English, type the Dutch. A wrong answer comes with a short tip.</p></li>
             <li><span className="skill-verb" lang="nl-BE">spreken</span><h3>Speak</h3><p>Say it out loud and see what we heard.</p></li>
           </ul>
           <div className="sample">
@@ -46,7 +50,7 @@ export default function Home() {
       <section className="section section-soft">
         <div className="container">
           <p className="eyebrow">A1 Beginner</p>
-          <h2 style={{ marginBottom: "var(--space-5)" }}>Eight lessons to start</h2>
+          <h2 style={{ marginBottom: "var(--space-5)" }}>Twelve lessons to start</h2>
           <ol className="plain lesson-list">
             {LESSONS.map((l, i) => (
               <li key={l.id} className="lesson-row">

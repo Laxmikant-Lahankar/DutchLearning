@@ -7,8 +7,9 @@
  */
 
 export type Level = "A1" | "A2" | "B1";
-export type Skill = "read" | "listen" | "write" | "speak";
-export const SKILLS: readonly Skill[] = ["read", "listen", "write", "speak"] as const;
+/** Lesson order: see the phrases, learn the grammar, then type and say them. Every answer is typed. */
+export type Skill = "read" | "grammar" | "listen" | "write" | "speak";
+export const SKILLS: readonly Skill[] = ["read", "grammar", "listen", "write", "speak"] as const;
 
 export interface Phrase {
   nl: string;
@@ -150,6 +151,66 @@ export const LESSONS: Lesson[] = [
       { nl: "Spreekt u Engels?", en: "Do you speak English?" },
       { nl: "Dank u wel.", en: "Thank you very much." },
       { nl: "Graag gedaan.", en: "You're welcome." },
+    ],
+  },
+  {
+    id: "family",
+    title: "Family",
+    emoji: "👪",
+    level: "A1",
+    review: null,
+    phrases: [
+      { nl: "Dit is mijn moeder.", en: "This is my mother." },
+      { nl: "Mijn broer woont in Brussel.", en: "My brother lives in Brussels." },
+      { nl: "Hoe heet uw dochter?", en: "What is your daughter's name?" },
+      { nl: "Haar man werkt in een winkel.", en: "Her husband works in a shop." },
+      { nl: "Wij hebben twee zonen.", en: "We have two sons." },
+      { nl: "Hun kinderen gaan naar school.", en: "Their children go to school." },
+    ],
+  },
+  {
+    id: "clothes",
+    title: "Clothes and looks",
+    emoji: "🧥",
+    level: "A1",
+    review: null,
+    phrases: [
+      { nl: "Ik draag een blauwe jas.", en: "I am wearing a blue coat." },
+      { nl: "Het is een mooie trui.", en: "It is a nice jumper." },
+      { nl: "Die broek is te groot.", en: "Those trousers are too big." },
+      { nl: "Ze heeft lang bruin haar.", en: "She has long brown hair." },
+      { nl: "Hij ziet er moe uit.", en: "He looks tired." },
+      { nl: "Mag ik deze schoenen passen?", en: "May I try on these shoes?" },
+    ],
+  },
+  {
+    id: "food",
+    title: "Food you like",
+    emoji: "🍟",
+    level: "A1",
+    review: null,
+    phrases: [
+      { nl: "Ik eet graag vis.", en: "I like eating fish." },
+      { nl: "Ik drink liever thee.", en: "I'd rather drink tea." },
+      { nl: "Ik vind spruitjes niet lekker.", en: "I don't like sprouts." },
+      { nl: "Wat eet je het liefst?", en: "What do you like eating most?" },
+      { nl: "Frietjes zijn lekkerder dan rijst.", en: "Chips are tastier than rice.", nlNL: "Patat is lekkerder dan rijst." },
+      { nl: "Dat is te zout.", en: "That is too salty." },
+    ],
+  },
+  {
+    id: "day",
+    title: "My day",
+    emoji: "⏰",
+    level: "A1",
+    review: null,
+    phrases: [
+      { nl: "Ik sta om zeven uur op.", en: "I get up at seven o'clock." },
+      { nl: "Ik was me en ik kleed me aan.", en: "I wash and get dressed." },
+      { nl: "Ik vertrek om acht uur.", en: "I leave at eight o'clock." },
+      { nl: "De bus komt om tien over acht aan.", en: "The bus arrives at ten past eight." },
+      { nl: "Ik bel je vanavond op.", en: "I'll call you tonight." },
+      { nl: "Ik ga om elf uur slapen.", en: "I go to sleep at eleven." },
     ],
   },
 ];

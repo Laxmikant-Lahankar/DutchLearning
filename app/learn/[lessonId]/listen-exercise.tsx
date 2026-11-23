@@ -1,168 +1,129 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckIcon, CrossIcon, SpeakerIcon } from "@/app/icons";
-import { listenOptions, percent } from "@/lib/quiz";
+import { useEffect, useRef, useState } from "react";
+import { SpeakerIcon } from "@/app/icons";
+import { gradeWrite, type WriteResult } from "@/lib/match";
+import { percent } from "@/lib/quiz";
 import { speakDutch, stopSpeaking } from "@/lib/speech";
 import { type ExerciseProps, type SaveState, ScoreSummary } from "./lesson-player";
 
-/** R-LS-02: the next question loads after about a second. */
-const NEXT_DELAY_MS = 1100;
-const AUTO_KEY = "dn.listen.autoAdvance";
-
-function readAutoPref(): boolean {
-  try {
-    return window.localStorage.getItem(AUTO_KEY) !== "off";
-  } catch {
-    return true;
-  }
-}
-
+/**
+ * Listen is dictation: hear the Dutch, type the Dutch. Typing what you hear is what makes it stick,
+ * so there are no answer options to tap. Small typos count, as in Write (80%).
+ */
 export function ListenExercise({ lesson, next, onNext, onComplete }: ExerciseProps) {
   const total = lesson.phrases.length;
-  const [round, setRound] = useState(0);
   const [index, setIndex] = useState(0);
-  const [picked, setPicked] = useState<string | null>(null);
+  const [answer, setAnswer] = useState("");
+  const [result, setResult] = useState<WriteResult | null>(null);
+  const [showText, setShowText] = useState(false);
   const [correct, setCorrect] = useState(0);
   const [finished, setFinished] = useState(false);
   const [save, setSave] = useState<SaveState>("idle");
-  const [showText, setShowText] = useState(false);
-  // WCAG 2.2.1: the timed advance has an off switch. When off, a Next button waits for the learner.
-  const [auto, setAuto] = useState(readAutoPref);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const firstOption = useRef<HTMLButtonElement>(null);
-  const nextBtn = useRef<HTMLButtonElement>(null);
-  const moveFocus = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
 
   const phrase = lesson.phrases[index]!;
-  const options = useMemo(() => listenOptions(lesson.phrases, index), [lesson.phrases, index, round]);
 
-  useEffect(
-    () => () => {
-      clearTimeout(timer.current);
-      stopSpeaking();
-    },
-    [],
-  );
-
-  // New question: play it (the first needs a tap, as browsers block autoplay) and, if the learner
-  // was answering by keyboard, put focus on the first option instead of dropping it.
+  useEffect(() => stopSpeaking, []);
+  // Each new phrase: play it (the first needs a tap, as browsers block autoplay) and focus the answer box.
   useEffect(() => {
+    if (finished) return;
     if (index > 0) speakDutch(lesson.phrases[index]!.nl);
-    if (moveFocus.current) firstOption.current?.focus();
-    moveFocus.current = false;
-  }, [index, lesson.phrases]);
+    inputRef.current?.focus();
+  }, [index, finished, lesson.phrases]);
+  useEffect(() => {
+    if (result) nextRef.current?.focus();
+  }, [result]);
 
-  function toggleAuto(on: boolean) {
-    setAuto(on);
-    try {
-      window.localStorage.setItem(AUTO_KEY, on ? "on" : "off");
-    } catch {
-      /* preference just isn't remembered */
-    }
+  function check(e: React.FormEvent) {
+    e.preventDefault();
+    if (result || !answer.trim()) return;
+    const graded = gradeWrite(answer, phrase.nl);
+    setResult(graded);
+    if (graded !== "wrong") setCorrect((c) => c + 1);
   }
 
-  async function advance(score: number) {
-    clearTimeout(timer.current);
-    setPicked(null);
+  async function goNext() {
+    setAnswer("");
+    setResult(null);
     setShowText(false);
     if (index + 1 < total) {
-      moveFocus.current = true;
       setIndex(index + 1);
-    } else {
-      setFinished(true);
-      setSave("saving");
-      setSave((await onComplete(percent(score, total))) ? "saved" : "failed");
+      return;
     }
-  }
-
-  function pick(option: string) {
-    if (picked) return;
-    setPicked(option);
-    const newCorrect = correct + (option === phrase.en ? 1 : 0);
-    setCorrect(newCorrect);
-    if (auto) {
-      moveFocus.current = true;
-      timer.current = setTimeout(() => advance(newCorrect), NEXT_DELAY_MS);
-    } else {
-      requestAnimationFrame(() => nextBtn.current?.focus());
-    }
+    setFinished(true);
+    setSave("saving");
+    setSave((await onComplete(percent(correct, total))) ? "saved" : "failed");
   }
 
   function restart() {
     setIndex(0);
     setCorrect(0);
-    setPicked(null);
+    setAnswer("");
+    setResult(null);
     setFinished(false);
     setSave("idle");
-    setRound((r) => r + 1);
   }
 
   if (finished) {
     return <ScoreSummary correct={correct} total={total} save={save} next={next} onNext={onNext} onRestart={restart} />;
   }
 
-  function stateOf(option: string): "right" | "wrong" | undefined {
-    if (!picked) return undefined;
-    if (option === phrase.en) return "right";
-    if (option === picked) return "wrong";
-    return undefined;
-  }
-
-  const gotIt = picked === phrase.en;
-
   return (
     <div>
-      <div className="exercise-head">
-        <p className="progress-line">Question {index + 1} of {total}</p>
-        <label className="toggle">
-          <input type="checkbox" checked={auto} onChange={(e) => toggleAuto(e.target.checked)} />
-          Move on automatically
-        </label>
-      </div>
+      <p className="progress-line">Phrase {index + 1} of {total}</p>
       <div className="btn-row">
-        <button className="btn" type="button" onClick={() => speakDutch(phrase.nl)}><SpeakerIcon /> Play the phrase</button>
-        {/* Written phrase is always available (R-NF-02), for learners who can't hear the audio. */}
-        <button className="text-link" type="button" aria-expanded={showText} onClick={() => setShowText((v) => !v)}>
-          {showText ? "Hide the Dutch" : "Show the Dutch"}
-        </button>
+        <button className="btn" type="button" onClick={() => speakDutch(phrase.nl)}><SpeakerIcon /> Play</button>
+        <button className="btn btn-quiet" type="button" onClick={() => speakDutch(phrase.nl, 0.7)}>Play slowly</button>
       </div>
-      {showText && <p className="phrase-nl" lang="nl-BE" style={{ marginTop: "var(--space-3)" }}>{phrase.nl}</p>}
 
-      <p className="prompt-label" id="listen-q" style={{ marginTop: "var(--space-5)" }}>What does it mean?</p>
-      <div className="options" role="group" aria-labelledby="listen-q">
-        {options.map((o, i) => {
-          const state = stateOf(o);
-          return (
-            <button
-              key={o}
-              ref={i === 0 ? firstOption : undefined}
-              className="option"
-              type="button"
-              data-state={state}
-              aria-disabled={!!picked}
-              onClick={() => pick(o)}
-            >
-              <span>{o}</span>
-              {state === "right" && <><CheckIcon className="option-icon" /><span className="sr-only"> (correct answer)</span></>}
-              {state === "wrong" && <><CrossIcon className="option-icon" /><span className="sr-only"> (your answer)</span></>}
+      <form onSubmit={check} style={{ marginTop: "var(--space-5)" }}>
+        <label htmlFor="listen-answer">
+          <span className="prompt-label">Type what you hear, in Dutch</span>
+        </label>
+        <input
+          ref={inputRef}
+          id="listen-answer"
+          className="input"
+          lang="nl-BE"
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
+          readOnly={!!result}
+          maxLength={200}
+        />
+        {!result && (
+          <div className="btn-row" style={{ marginTop: "var(--space-4)" }}>
+            <button className="btn" type="submit">Check</button>
+            {/* R-NF-02: the written phrase is always available, for learners who can't hear the audio. */}
+            <button className="text-link" type="button" aria-expanded={showText} onClick={() => setShowText((v) => !v)}>
+              {showText ? "Hide the Dutch" : "Can't hear it? Show the Dutch"}
             </button>
-          );
-        })}
-      </div>
+          </div>
+        )}
+        {showText && !result && <p className="phrase-nl" lang="nl-BE" style={{ marginTop: "var(--space-3)" }}>{phrase.nl}</p>}
+      </form>
 
       <div aria-live="polite" aria-atomic="true">
-        {picked && (
-          <div className="result" data-state={gotIt ? "right" : "wrong"}>
-            <p className="result-title">{gotIt ? "Right." : `Not quite. It means “${phrase.en}”.`}</p>
-            <p lang="nl-BE">{phrase.nl}</p>
+        {result && (
+          <div id="listen-result" className="result" data-state={result === "wrong" ? "wrong" : "right"}>
+            <p>
+              <span className="result-title">
+                {result === "exact" ? "Correct." : result === "close" ? "Almost — counted as right." : "Not quite."}
+              </span>
+              <br /><span lang="nl-BE">{phrase.nl}</span>
+              <br /><span className="muted">{phrase.en}</span>
+            </p>
           </div>
         )}
       </div>
-      {picked && !auto && (
+      {result && (
         <div className="btn-row" style={{ marginTop: "var(--space-4)" }}>
-          <button ref={nextBtn} className="btn" type="button" onClick={() => advance(correct)}>
-            {index + 1 < total ? "Next question" : "See score"}
+          <button ref={nextRef} className="btn" type="button" onClick={goNext} aria-describedby="listen-result">
+            {index + 1 < total ? "Next phrase" : "See score"}
           </button>
         </div>
       )}

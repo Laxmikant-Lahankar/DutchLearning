@@ -9,6 +9,7 @@ export function normalize(text: string): string {
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
+    .replace(/['’‘`]/g, "") // euro's = euros
     .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -45,6 +46,19 @@ export function gradeWrite(answer: string, target: string): WriteResult {
   const score = similarity(answer, target);
   if (score === 1) return "exact";
   return score >= WRITE_PASS ? "close" : "wrong";
+}
+
+/**
+ * Grammar drills are strict: one letter is often the whole point (woon / woont), so there is
+ * no typo allowance. Case, accents and punctuation are still ignored. For gap drills the learner
+ * may type just the missing word or the whole sentence.
+ */
+export function gradeDrill(answer: string, answers: readonly string[], gapText?: string): boolean {
+  const given = normalize(answer);
+  if (!given) return false;
+  return answers.some(
+    (a) => normalize(a) === given || (gapText !== undefined && normalize(gapText.replace("___", a)) === given),
+  );
 }
 
 export function passesSpeak(heard: string, target: string): boolean {
