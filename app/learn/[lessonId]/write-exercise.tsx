@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FeedbackResponse } from "@/app/api/feedback/route";
 import { gradeWrite, type WriteResult } from "@/lib/match";
 import { percent } from "@/lib/quiz";
@@ -21,7 +21,7 @@ async function fetchFeedback(lessonId: string, index: number, answer: string): P
   }
 }
 
-export function WriteExercise({ lesson, onComplete }: ExerciseProps) {
+export function WriteExercise({ lesson, next, onNext, onComplete }: ExerciseProps) {
   const total = lesson.phrases.length;
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState("");
@@ -30,10 +30,20 @@ export function WriteExercise({ lesson, onComplete }: ExerciseProps) {
   const [correct, setCorrect] = useState(0);
   const [finished, setFinished] = useState(false);
   const [save, setSave] = useState<SaveState>("idle");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const nextRef = useRef<HTMLButtonElement>(null);
 
   const phrase = lesson.phrases[index]!;
   const currentIndex = useRef(index);
   currentIndex.current = finished ? -1 : index;
+
+  // Focus the answer box for each new question, and the Next button once an answer is checked.
+  useEffect(() => {
+    if (!finished) inputRef.current?.focus();
+  }, [index, finished]);
+  useEffect(() => {
+    if (result) nextRef.current?.focus();
+  }, [result]);
 
   async function check(e: React.FormEvent) {
     e.preventDefault();
@@ -52,7 +62,7 @@ export function WriteExercise({ lesson, onComplete }: ExerciseProps) {
     if (currentIndex.current === asked) setFeedback(reply);
   }
 
-  async function next() {
+  async function goNext() {
     setAnswer("");
     setResult(null);
     setFeedback(null);
@@ -75,16 +85,20 @@ export function WriteExercise({ lesson, onComplete }: ExerciseProps) {
     setSave("idle");
   }
 
-  if (finished) return <ScoreSummary correct={correct} total={total} save={save} onRestart={restart} />;
+  if (finished) {
+    return <ScoreSummary correct={correct} total={total} save={save} next={next} onNext={onNext} onRestart={restart} />;
+  }
 
   return (
     <div>
-      <p className="muted">Question {index + 1} of {total}</p>
+      <p className="progress-line">Question {index + 1} of {total}</p>
       <form onSubmit={check}>
         <label htmlFor="write-answer">
-          Write in Dutch: <strong>{phrase.en}</strong>
+          <span className="prompt-label">Write this in Dutch</span>
+          <span className="prompt" style={{ display: "block" }}>{phrase.en}</span>
         </label>
         <input
+          ref={inputRef}
           id="write-answer"
           className="input"
           lang="nl-BE"
@@ -95,42 +109,48 @@ export function WriteExercise({ lesson, onComplete }: ExerciseProps) {
           onChange={(e) => setAnswer(e.target.value)}
           readOnly={!!result}
           maxLength={200}
-          autoFocus
         />
         {!result && (
-          <div className="row">
-            <button className="btn" type="submit" disabled={!answer.trim()}>Check</button>
+          <div className="btn-row" style={{ marginTop: "var(--space-4)" }}>
+            <button className="btn" type="submit">Check</button>
           </div>
         )}
       </form>
 
-      <div aria-live="polite">
+      {/* The result text is announced on its own; Next points back to it via aria-describedby. */}
+      <div aria-live="polite" aria-atomic="true">
         {result && (
-          <div className="result" data-state={result === "wrong" ? "wrong" : "right"}>
-            {result === "exact" && <p><strong>Correct!</strong></p>}
+          <div id="write-result" className="result" data-state={result === "wrong" ? "wrong" : "right"}>
+            {result === "exact" && <p className="result-title">Correct.</p>}
             {result === "close" && (
               <p>
-                <strong>Almost!</strong> Correct spelling: <span lang="nl-BE">{phrase.nl}</span>
+                <span className="result-title">Almost — counted as right.</span>
+                <br />Spelling: <span lang="nl-BE">{phrase.nl}</span>
               </p>
             )}
             {result === "wrong" && (
               <>
                 <p>
-                  <strong>Not quite.</strong> The answer is: <span lang="nl-BE">{phrase.nl}</span>
+                  <span className="result-title">Not quite.</span>
+                  <br />The answer: <span lang="nl-BE">{phrase.nl}</span>
                 </p>
-                {feedback && "state" in feedback && <p className="muted">Getting a tip…</p>}
+                {feedback && "state" in feedback && <p className="tip">Getting a tip…</p>}
                 {feedback && "status" in feedback && feedback.status === "ok" && <p>{feedback.feedback}</p>}
                 {feedback && "status" in feedback && feedback.status === "limit" && (
-                  <p className="muted">You&apos;ve used today&apos;s tips. They reset tomorrow.</p>
+                  <p className="tip">You&apos;ve used today&apos;s tips. They reset tomorrow.</p>
                 )}
               </>
             )}
-            <button className="btn" type="button" onClick={next} autoFocus>
-              {index + 1 < total ? "Next" : "See score"}
-            </button>
           </div>
         )}
       </div>
+      {result && (
+        <div className="btn-row" style={{ marginTop: "var(--space-4)" }}>
+          <button ref={nextRef} className="btn" type="button" onClick={goNext} aria-describedby="write-result">
+            {index + 1 < total ? "Next question" : "See score"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

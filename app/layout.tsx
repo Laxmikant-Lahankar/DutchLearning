@@ -1,7 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { Instrument_Sans, Newsreader } from "next/font/google";
 import Link from "next/link";
 import { getUser } from "@/lib/user";
 import "./globals.css";
+
+// Self-hosted at build time by next/font: no request to Google from the learner's browser.
+// Placeholder choices until the brand guidelines confirm typography.
+const newsreader = Newsreader({ subsets: ["latin"], style: ["normal", "italic"], variable: "--font-newsreader", display: "swap" });
+const instrument = Instrument_Sans({ subsets: ["latin"], variable: "--font-instrument", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "DagNederlands", template: "%s | DagNederlands" },
@@ -15,14 +21,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const user = await getUser();
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${newsreader.variable} ${instrument.variable}`}>
       <body>
         <a className="skip-link" href="#main">Skip to content</a>
         <header className="nav">
           <div className="container nav-inner">
-            <Link className="brand" href={user ? "/learn" : "/"}>DagNederlands</Link>
+            <Link className="wordmark" href={user ? "/learn" : "/"}>
+              Dag<span>Nederlands</span>
+            </Link>
             <nav className="nav-links" aria-label="Main">
-              <Link href="/pricing">Pricing</Link>
               {user ? (
                 <>
                   <Link href="/learn">My lessons</Link>
@@ -31,16 +38,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   </form>
                 </>
               ) : (
-                <Link href="/login">Sign in</Link>
+                <>
+                  <Link href="/pricing">Pricing</Link>
+                  <Link href="/login">Sign in</Link>
+                </>
               )}
             </nav>
           </div>
         </header>
         <main id="main">{children}</main>
         <footer className="footer">
-          <div className="container">
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/pricing">Pricing</Link>
+          <div className="container footer-inner">
+            <span>DagNederlands</span>
+            <nav aria-label="Footer">
+              <Link href="/pricing">Pricing</Link>
+              <Link href="/privacy">Privacy</Link>
+            </nav>
           </div>
         </footer>
       </body>

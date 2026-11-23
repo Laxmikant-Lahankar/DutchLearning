@@ -1,46 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Lesson } from "@/lib/lessons";
+import { SpeakerIcon } from "@/app/icons";
 import { speakDutch, stopSpeaking } from "@/lib/speech";
-import { type SaveState, SaveNote } from "./lesson-player";
+import { type ExerciseProps, NextAction, type SaveState, SaveNote } from "./lesson-player";
 
-export function ReadExercise({
-  lesson,
-  done,
-  onComplete,
-}: {
-  lesson: Lesson;
-  done: boolean;
-  onComplete: (score: number) => Promise<boolean>;
-}) {
+export function ReadExercise({ lesson, next, onNext, onComplete, done }: ExerciseProps & { done: boolean }) {
   const [save, setSave] = useState<SaveState>("idle");
   useEffect(() => stopSpeaking, []);
 
   async function markRead() {
+    if (save === "saving") return; // aria-disabled keeps focus on the button while saving
     setSave("saving");
     setSave((await onComplete(100)) ? "saved" : "failed");
   }
 
   return (
     <>
-      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+      <ul className="plain phrase-list">
         {lesson.phrases.map((p) => (
           <li key={p.nl} className="phrase">
-            <button className="icon-btn" type="button" onClick={() => speakDutch(p.nl)} aria-label={`Play: ${p.nl}`}>
-              🔊
+            <button className="audio-btn" type="button" onClick={() => speakDutch(p.nl)}>
+              <SpeakerIcon />
+              <span className="sr-only">Play <span lang="nl-BE">{p.nl}</span></span>
             </button>
             <div>
-              <div className="phrase-nl" lang="nl-BE">{p.nl}</div>
-              <div className="muted">{p.en}</div>
+              <p className="phrase-nl" lang="nl-BE" style={{ margin: 0 }}>{p.nl}</p>
+              <p className="phrase-en">{p.en}</p>
+              {p.nlNL && (
+                <p className="variant-note">
+                  In the Netherlands: <span lang="nl-NL">{p.nlNL}</span>
+                </p>
+              )}
             </div>
           </li>
         ))}
       </ul>
-      <div className="row">
-        <button className="btn" type="button" onClick={markRead} disabled={save === "saving"}>
-          {done ? "Mark as read again" : "Mark as read"}
-        </button>
+      <div className="btn-row" style={{ marginTop: "var(--space-5)" }}>
+        {save === "saved" ? (
+          <NextAction next={next} onNext={onNext} />
+        ) : (
+          <button className="btn" type="button" onClick={markRead} aria-disabled={save === "saving"}>
+            {done ? "Mark as read again" : "Mark as read"}
+          </button>
+        )}
       </div>
       <SaveNote state={save} />
     </>

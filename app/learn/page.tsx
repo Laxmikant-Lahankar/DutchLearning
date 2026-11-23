@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LockIcon } from "@/app/icons";
 import { LESSONS, LOCKED_LEVELS, SKILLS, XP_PER_SKILL } from "@/lib/lessons";
 import { doneSkills, getMyProgress } from "@/lib/progress";
 
@@ -13,49 +14,77 @@ export default async function Learn() {
   // XP is a calculation for now (R-AC-05): 10 per completed skill.
   const xp = rows.length * XP_PER_SKILL;
   const total = LESSONS.length * SKILLS.length;
+  const nextLesson = LESSONS.find((l) => doneSkills(rows, l.id).size < SKILLS.length);
 
   return (
-    <section className="section">
-      <div className="container">
+    <div className="container">
+      <header className="page-head">
+        <p className="eyebrow">A1 Beginner</p>
         <h1>My lessons</h1>
-        <div className="row" style={{ marginBottom: "2rem" }}>
-          <div className="card"><div className="stat">{xp}</div><div className="muted">XP</div></div>
-          <div className="card"><div className="stat">{rows.length}/{total}</div><div className="muted">Skills done</div></div>
+      </header>
+
+      {/* The next action comes first: on a phone, it's the one thing to tap. */}
+      <div className="summary">
+        <div className="summary-next">
+          {nextLesson ? (
+            <>
+              <p className="muted">
+                {rows.length === 0 ? "Start here" : "Up next"}: lesson {LESSONS.indexOf(nextLesson) + 1}
+              </p>
+              <Link className="btn" href={`/learn/${nextLesson.id}`}>{nextLesson.title}</Link>
+            </>
+          ) : (
+            <p>You&apos;ve finished every A1 skill. Nice work.</p>
+          )}
         </div>
+        <div className="summary-stats">
+          <p className="summary-item">
+            <span className="summary-figure">{rows.length}<span className="muted">/{total}</span></span>
+            <span className="summary-label">skills done</span>
+          </p>
+          <p className="summary-item">
+            <span className="summary-figure">{xp}</span>
+            <span className="summary-label">XP</span>
+          </p>
+        </div>
+      </div>
 
-        <h2>A1 Beginner</h2>
-        <ul className="grid" style={{ listStyle: "none", padding: 0 }}>
-          {LESSONS.map((lesson) => {
-            const done = doneSkills(rows, lesson.id);
-            return (
-              <li key={lesson.id}>
-                <Link className="card lesson-card" href={`/learn/${lesson.id}`}>
-                  <span className="lesson-emoji" aria-hidden="true">{lesson.emoji}</span>
-                  <h3>{lesson.title}</h3>
-                  <ul className="ticks" aria-label={`${done.size} of 4 skills done`}>
-                    {SKILLS.map((s) => (
-                      <li key={s} data-done={done.has(s)}>
-                        {done.has(s) ? "✓ " : ""}{LABEL[s]}
-                      </li>
-                    ))}
-                  </ul>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+      <ol className="plain lesson-list">
+        {LESSONS.map((lesson, i) => {
+          const done = doneSkills(rows, lesson.id);
+          const doneNames = SKILLS.filter((s) => done.has(s)).map((s) => LABEL[s]);
+          return (
+            <li key={lesson.id}>
+              <Link className="lesson-row" href={`/learn/${lesson.id}`}>
+                <span className="lesson-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                <span className="lesson-title">{lesson.title}</span>
+                <span className="lesson-meta">
+                  <span className="meter" aria-hidden="true">
+                    {SKILLS.map((s) => <span key={s} data-done={done.has(s)} />)}
+                  </span>
+                  <span>
+                    {done.size === SKILLS.length ? "Complete" : `${done.size} of 4`}
+                    <span className="sr-only">{doneNames.length ? `: ${doneNames.join(", ")} done` : ""}</span>
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ol>
 
-        <h2 style={{ marginTop: "2.5rem" }}>Next levels</h2>
-        <ul className="grid" style={{ listStyle: "none", padding: 0 }}>
+      <section className="section" aria-labelledby="next-levels">
+        <h2 id="next-levels" style={{ marginBottom: "var(--space-4)" }}>Next levels</h2>
+        <ul className="plain lesson-list">
           {LOCKED_LEVELS.map((l) => (
-            <li key={l.level} className="card locked">
-              <span aria-hidden="true">🔒</span>
-              <h3>{l.title}</h3>
-              <p>Coming soon</p>
+            <li key={l.level} className="lesson-row is-locked">
+              <span className="lesson-num">{l.level}</span>
+              <span className="lesson-title">{l.title.replace(`${l.level} `, "")}</span>
+              <span className="lesson-meta"><LockIcon /> Coming soon</span>
             </li>
           ))}
         </ul>
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }

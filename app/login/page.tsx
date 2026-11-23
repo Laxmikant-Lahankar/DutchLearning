@@ -13,9 +13,9 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
 
   return (
     <section className="section">
-      <div className="container narrow">
+      <div className="container measure">
         <h1>Sign in</h1>
-        <p>Use your Google account. A1 is free and needs no card.</p>
+        <p className="muted" style={{ marginTop: "var(--space-3)" }}>Use your Google account. A1 is free and needs no card.</p>
         {error && <p role="alert">Sign-in didn&apos;t work. Please try again.</p>}
         <GoogleButton next={target} />
       </div>

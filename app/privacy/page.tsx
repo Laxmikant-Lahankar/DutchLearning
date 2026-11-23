@@ -8,9 +8,9 @@ const CONTACT = process.env.NEXT_PUBLIC_CONTACT_EMAIL;
 export default function Privacy() {
   return (
     <section className="section">
-      <div className="container narrow">
-        <h1>Privacy</h1>
-        <p>DagNederlands collects as little as it can.</p>
+      <div className="container measure prose">
+        <h1 style={{ marginBottom: "var(--space-3)" }}>Privacy</h1>
+        <p className="muted" style={{ fontSize: "var(--step-1)" }}>DagNederlands collects as little as it can.</p>
 
         <h2>What we store</h2>
         <ul>
