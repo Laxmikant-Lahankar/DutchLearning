@@ -1,0 +1,122 @@
+/*
+ * DagNederlands brand tokens (R-BR-01). Components use these variables only; no brand hex codes elsewhere.
+ * Roles (R-BR-02): navy = text and dark blocks, plum = buttons and links, lilac = soft sections,
+ * gradient = nav band only. Light mode only: dark mode (R-BR-04) is an unconfirmed assumption.
+ */
+:root {
+  --midnight-navy: #0d2a50;
+  --royal-plum: #822782;
+  --electric-violet: #760e9a;
+  --dusky-orchid: #9f477c;
+  --lilac-mist: #faf6fa;
+  --slate-grey: #6b7179;
+  --white: #ffffff;
+  --signature-gradient: linear-gradient(19deg, var(--electric-violet) 12.45%, var(--dusky-orchid) 86.21%);
+
+  /* Feedback colours are not brand colours (R-BR-05). White text on each: 5.0:1 and 6.5:1. */
+  --feedback-right: #15803d;
+  --feedback-wrong: #b91c1c;
+
+  --text: var(--midnight-navy);
+  --text-muted: var(--slate-grey);
+  --link: var(--royal-plum);
+  --button: var(--royal-plum);
+  --button-hover: var(--midnight-navy);
+  --page: var(--white);
+  --card: var(--white);
+  --section-soft: var(--lilac-mist);
+  --border: color-mix(in srgb, var(--slate-grey) 30%, transparent);
+
+  --radius: 12px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+
+body {
+  background: var(--page);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+a { color: var(--link); }
+h1, h2, h3 { line-height: 1.15; letter-spacing: -0.01em; }
+h1 { font-size: clamp(2rem, 6vw, 3.25rem); margin: 0 0 1rem; }
+h2 { font-size: 1.5rem; margin: 0 0 0.75rem; }
+
+.container { max-width: 64rem; margin: 0 auto; padding: 0 16px; }
+.narrow { max-width: 40rem; }
+.muted { color: var(--text-muted); }
+
+/* Nav band: the only place the gradient appears (R-BR-02). */
+.nav { background: var(--signature-gradient); color: var(--white); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; flex-wrap: wrap; }
+.brand { color: var(--white); font-weight: 700; font-size: 1.2rem; text-decoration: none; }
+.nav-links { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.nav-links a, .nav-links button { color: var(--white); text-decoration: none; font: inherit; }
+.nav-links button { background: none; border: 0; cursor: pointer; padding: 0; text-decoration: underline; }
+.nav :focus-visible { outline-color: var(--white); }
+
+.section { padding: 3rem 0; }
+.section-soft { background: var(--section-soft); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 44px; padding: 0.6rem 1.2rem; border-radius: 999px; border: 2px solid var(--button);
+  background: var(--button); color: var(--white); font: inherit; font-weight: 600;
+  text-decoration: none; cursor: pointer;
+}
+.btn:hover { background: var(--button-hover); border-color: var(--button-hover); }
+.btn-ghost { background: transparent; color: var(--button); }
+.btn-ghost:hover { color: var(--white); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+.grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
+
+.lesson-card { display: block; color: inherit; text-decoration: none; }
+.lesson-card:hover { border-color: var(--button); }
+.lesson-emoji { font-size: 2rem; }
+.locked { color: var(--text-muted); }
+
+.ticks { display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 0; margin: 0.75rem 0 0; list-style: none; font-size: 0.875rem; }
+.ticks li { border: 1px solid var(--border); border-radius: 999px; padding: 0 0.6rem; }
+.ticks li[data-done="true"] { background: var(--section-soft); border-color: var(--button); }
+
+.tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1.5rem 0; }
+.tab { min-height: 44px; padding: 0.5rem 1rem; border-radius: 999px; border: 2px solid var(--border); background: var(--card); color: var(--text); font: inherit; cursor: pointer; }
+.tab[aria-selected="true"] { border-color: var(--button); background: var(--section-soft); font-weight: 600; }
+
+.phrase { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 0; border-bottom: 1px solid var(--border); }
+.phrase-nl { font-weight: 600; font-size: 1.1rem; }
+.icon-btn { min-width: 44px; min-height: 44px; border-radius: 999px; border: 2px solid var(--button); background: var(--card); color: var(--button); font-size: 1.1rem; cursor: pointer; }
+.icon-btn:hover { background: var(--section-soft); }
+
+.options { display: grid; gap: 0.75rem; margin: 1rem 0; }
+.option { min-height: 48px; text-align: left; padding: 0.75rem 1rem; border-radius: var(--radius); border: 2px solid var(--border); background: var(--card); color: var(--text); font: inherit; cursor: pointer; }
+.option:hover:not(:disabled) { border-color: var(--button); }
+.option[data-state="right"] { background: var(--feedback-right); border-color: var(--feedback-right); color: var(--white); }
+.option[data-state="wrong"] { background: var(--feedback-wrong); border-color: var(--feedback-wrong); color: var(--white); }
+
+.input { width: 100%; min-height: 48px; padding: 0.6rem 0.9rem; border-radius: var(--radius); border: 2px solid var(--slate-grey); font: inherit; color: var(--text); background: var(--card); }
+
+.result { margin-top: 1rem; padding: 1rem; border-radius: var(--radius); border-left: 6px solid; background: var(--section-soft); }
+.result[data-state="right"] { border-color: var(--feedback-right); }
+.result[data-state="wrong"] { border-color: var(--feedback-wrong); }
+
+.row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
+.stat { font-size: 2rem; font-weight: 700; }
+
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid var(--border); }
+
+.footer { padding: 2rem 0; color: var(--text-muted); font-size: 0.9rem; }
+.footer a { margin-right: 1rem; }
+
+.skip-link { position: absolute; left: -999px; top: 0.5rem; background: var(--midnight-navy); color: var(--white); padding: 0.5rem 1rem; border-radius: 4px; z-index: 10; }
+.skip-link:focus { left: 0.5rem; }
+:focus-visible { outline: 3px solid var(--royal-plum); outline-offset: 2px; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

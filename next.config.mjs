@@ -8,7 +8,12 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "microphone=(self), camera=(), geolocation=()" },
 ];
 
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
 const nextConfig = {
+  // This repo sits inside a folder with another lockfile; pin the root to this project.
+  outputFileTracingRoot: path.dirname(fileURLToPath(import.meta.url)),
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {

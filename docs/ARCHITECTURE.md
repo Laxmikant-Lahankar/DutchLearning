@@ -3,16 +3,17 @@
 ## Layout
 
 ```
-src/
-  app/            Routes, pages and API route handlers (Next.js App Router)
-  lib/            Shared code: env validation, Supabase clients
-  features/       (added per part) auth, content, lesson, evaluation, audio, speaking, progress, vocab, assessments
+app/              Routes, pages and API route handlers (Next.js App Router)
+lib/              Shared code: env validation, Supabase clients
+features/          (planned) one folder per later part
 supabase/
   migrations/     Numbered SQL migrations
 docs/             Project documentation
 ```
 
 ## Rules that keep later parts easy
+
+> v1 note: per the requirements doc (R-LV-01), lessons currently live in `lib/lessons.ts`. Rules 1 and 2 describe the target once lessons move to Supabase (R-LV-04).
 
 1. **Activities are data.** Lessons are stored as typed activities. Each type gets one renderer and one evaluator (Parts 3, 4, 5). New content should never need new code.
 2. **Language and variant live in the data.** Content rows carry `language`, `level` and `variant` (for example `nl-BE`) so A2 and other languages need only content (Part 2).
