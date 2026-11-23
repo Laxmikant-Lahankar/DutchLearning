@@ -5,12 +5,14 @@ import { useRef, useState } from "react";
 import { CheckIcon } from "@/app/icons";
 import type { Lesson, Skill } from "@/lib/lessons";
 import { SKILLS } from "@/lib/lessons";
+import { GrammarExercise } from "./grammar-exercise";
 import { ListenExercise } from "./listen-exercise";
 import { ReadExercise } from "./read-exercise";
 import { SpeakExercise } from "./speak-exercise";
 import { WriteExercise } from "./write-exercise";
 
-const LABEL: Record<Skill, string> = { read: "Read", listen: "Listen", write: "Write", speak: "Speak" };
+export const SKILL_LABEL: Record<Skill, string> = { read: "Read", grammar: "Grammar", listen: "Listen", write: "Write", speak: "Speak" };
+const LABEL = SKILL_LABEL;
 
 export type SaveState = "idle" | "saving" | "saved" | "failed";
 
@@ -118,6 +120,7 @@ export function LessonPlayer({
         {/* key resets each exercise when switching tabs. Exercises only mount after hydration,
             so their random option order never runs on the server. */}
         {skill === "read" && <ReadExercise key="read" {...props("read")} done={done.has("read")} />}
+        {skill === "grammar" && <GrammarExercise key="grammar" {...props("grammar")} />}
         {skill === "listen" && <ListenExercise key="listen" {...props("listen")} />}
         {skill === "write" && <WriteExercise key="write" {...props("write")} />}
         {skill === "speak" && <SpeakExercise key="speak" {...props("speak")} />}

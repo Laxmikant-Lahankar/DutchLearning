@@ -1,6 +1,8 @@
 # DagNederlands
 
-Learn Dutch from A1, starting with Flemish Dutch (nl-BE), through reading, listening, writing and speaking.
+Learn Dutch from A1, starting with Flemish Dutch (nl-BE): phrases and grammar, practised by reading, listening, writing and speaking.
+
+**Every answer is typed.** No multiple choice, tapping or dragging: typing the Dutch yourself is what makes it stick. Listen is dictation; grammar drills are fill-the-gap, rewrite and translate.
 A1 is free with Google sign-in. The requirements live in the "DagNederlands: Requirements" doc; IDs such as R-RD-01 below refer to it.
 
 ## Stack
@@ -23,8 +25,9 @@ app/                     Pages and API routes
   api/feedback           AI explanation for wrong Write answers, with a daily cap
   auth/                  Google OAuth callback and sign-out
 lib/
-  lessons.ts             A1 lesson content (not yet reviewed by a native speaker, R-LV-03)
-  match.ts               Answer comparison for Write (80%) and Speak (75%)
+  lessons.ts             12 A1 lessons of phrases (not yet reviewed by a native speaker, R-LV-03)
+  grammar.ts             One grammar lesson per unit: explanation + typed drills (original content)
+  match.ts               Answer checks: Write/Listen 80%, Speak 75%, grammar exact
   ai.ts                  Server-only Anthropic call
   speech.ts              Browser speech synthesis and recognition
 supabase/migrations/     Numbered SQL migrations
