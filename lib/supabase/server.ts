@@ -17,7 +17,7 @@ export async function createClient() {
           list.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
         } catch {
           // Called from a Server Component, where cookies are read-only.
-          // Safe to ignore once middleware refreshes sessions (added in Part 1).
+          // Safe to ignore: middleware.ts refreshes sessions.
         }
       },
     },
