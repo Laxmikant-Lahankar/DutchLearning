@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { passesSpeak } from "@/lib/match";
 import { percent } from "@/lib/quiz";
 import { DUTCH, getRecognition, type Recognition, speakDutch, stopSpeaking } from "@/lib/speech";
+import { MicIcon, SpeakerIcon } from "@/app/icons";
 import { type ExerciseProps, type SaveState, ScoreSummary } from "./lesson-player";
 
 type Status = "ready" | "listening" | "heard" | "error";
 
-export function SpeakExercise({ lesson, onComplete }: ExerciseProps) {
+export function SpeakExercise({ lesson, next: nextStep, onNext, onComplete }: ExerciseProps) {
   const total = lesson.phrases.length;
   // Only rendered after a tab click, so window is available here.
   const [Ctor] = useState(() => getRecognition());
@@ -33,8 +34,8 @@ export function SpeakExercise({ lesson, onComplete }: ExerciseProps) {
   // R-SP-02: a clear message instead of a crash.
   if (!Ctor) {
     return (
-      <div className="result" data-state="wrong" role="status">
-        <p>
+      <div className="notice" role="status">
+        <p style={{ margin: 0 }}>
           <strong>Speaking practice isn&apos;t available in this browser.</strong> Please use Chrome or Edge on a
           computer or Android phone. Everything else in the lesson works here.
         </p>
@@ -45,6 +46,7 @@ export function SpeakExercise({ lesson, onComplete }: ExerciseProps) {
   const phrase = lesson.phrases[index]!;
 
   function listen() {
+    if (status === "listening") return;
     if (!Ctor) return;
     stopSpeaking();
     rec.current?.abort();
@@ -113,32 +115,40 @@ export function SpeakExercise({ lesson, onComplete }: ExerciseProps) {
     setSave("idle");
   }
 
-  if (finished) return <ScoreSummary correct={passed.size} total={total} save={save} onRestart={restart} />;
+  if (finished) {
+    return <ScoreSummary correct={passed.size} total={total} save={save} next={nextStep} onNext={onNext} onRestart={restart} />;
+  }
 
   return (
     <div>
-      <p className="muted">Phrase {index + 1} of {total}</p>
-      <p className="phrase-nl" lang="nl-BE" style={{ fontSize: "1.5rem" }}>{phrase.nl}</p>
+      <p className="progress-line">Phrase {index + 1} of {total}</p>
+      <p className="speak-target" lang="nl-BE">{phrase.nl}</p>
       <p className="muted">{phrase.en}</p>
-      <div className="row">
-        <button className="btn btn-ghost" type="button" onClick={() => speakDutch(phrase.nl)}>🔊 Hear it</button>
-        <button className="btn" type="button" onClick={listen} disabled={status === "listening"}>
-          {status === "listening" ? "Listening…" : status === "ready" ? "🎤 Say it" : "🎤 Try again"}
+      <div className="btn-row">
+        {/* aria-disabled, not disabled, so focus stays on the button while listening */}
+        <button className="btn" type="button" onClick={listen} aria-disabled={status === "listening"}>
+          <MicIcon />
+          {status === "ready" ? "Say it" : "Try again"}
+        </button>
+        <button className="btn btn-quiet" type="button" onClick={() => speakDutch(phrase.nl)}>
+          <SpeakerIcon /> Hear it
         </button>
         {/* R-SP-03: skip moves on */}
-        <button className="btn btn-ghost" type="button" onClick={next}>
+        <button className="text-link" type="button" onClick={next}>
           {status === "heard" && passedNow ? (index + 1 < total ? "Next" : "See score") : "Skip"}
         </button>
       </div>
 
-      <div aria-live="polite">
+      {/* One live region for every status, so nothing is announced twice. */}
+      <div aria-live="polite" aria-atomic="true">
+        {status === "listening" && <p className="muted" style={{ marginTop: "var(--space-4)" }}>Listening… say the phrase now.</p>}
         {status === "heard" && (
           <div className="result" data-state={passedNow ? "right" : "wrong"}>
+            <p className="result-title">{passedNow ? "Well said." : "Not quite. Listen again and have another go."}</p>
             <p>We heard: “<span lang="nl-BE">{heard || "…"}</span>”</p>
-            <p><strong>{passedNow ? "Well said!" : "Not quite. Listen again and have another go."}</strong></p>
           </div>
         )}
-        {status === "error" && <p role="alert">{errorText}</p>}
+        {status === "error" && <p className="result-error">{errorText}</p>}
       </div>
     </div>
   );

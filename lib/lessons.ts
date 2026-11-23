@@ -2,7 +2,7 @@
  * A1 lesson content (R-LV-01). Flemish (nl-BE) wording comes first.
  *
  * NOT REVIEWED (R-LV-03): no native speaker has checked these lessons yet.
- * `review` stays null until a reviewer signs off, and `variantNote` flags phrases
+ * `review` stays null until a reviewer signs off, and `nlNL` flags phrases
  * where Belgian and Netherlands Dutch differ.
  */
 
@@ -13,8 +13,8 @@ export const SKILLS: readonly Skill[] = ["read", "listen", "write", "speak"] as 
 export interface Phrase {
   nl: string;
   en: string;
-  /** Set when nl-BE and nl-NL wording differ. */
-  variantNote?: string;
+  /** Netherlands (nl-NL) wording, set only where it differs from the Flemish phrase. */
+  nlNL?: string;
 }
 
 export interface Review {
@@ -40,8 +40,8 @@ export const LESSONS: Lesson[] = [
     review: null,
     phrases: [
       { nl: "Hallo!", en: "Hello!" },
-      { nl: "Goeiemorgen!", en: "Good morning!", variantNote: "nl-NL often writes 'Goedemorgen'." },
-      { nl: "Goeienavond!", en: "Good evening!", variantNote: "nl-NL often writes 'Goedenavond'." },
+      { nl: "Goeiemorgen!", en: "Good morning!", nlNL: "Goedemorgen!" },
+      { nl: "Goeienavond!", en: "Good evening!", nlNL: "Goedenavond!" },
       { nl: "Hoe gaat het?", en: "How are you?" },
       { nl: "Goed, dank u.", en: "Fine, thank you." },
       { nl: "Tot straks!", en: "See you later!" },
@@ -102,7 +102,7 @@ export const LESSONS: Lesson[] = [
       { nl: "Waar is het brood?", en: "Where is the bread?" },
       { nl: "Ik zoek melk.", en: "I am looking for milk." },
       { nl: "Heeft u een zak nodig?", en: "Do you need a bag?" },
-      { nl: "Is dit in promotie?", en: "Is this on offer?", variantNote: "nl-NL says 'in de aanbieding'." },
+      { nl: "Is dit in promotie?", en: "Is this on offer?", nlNL: "Is dit in de aanbieding?" },
       { nl: "Een kilo tomaten, alstublieft.", en: "A kilo of tomatoes, please." },
       { nl: "Dat is alles.", en: "That is all." },
     ],
@@ -146,7 +146,7 @@ export const LESSONS: Lesson[] = [
     phrases: [
       { nl: "Sorry, ik begrijp het niet.", en: "Sorry, I don't understand." },
       { nl: "Kunt u dat herhalen?", en: "Can you repeat that?" },
-      { nl: "Kunt u wat trager spreken?", en: "Can you speak a bit more slowly?", variantNote: "nl-NL says 'langzamer'." },
+      { nl: "Kunt u wat trager spreken?", en: "Can you speak a bit more slowly?", nlNL: "Kunt u wat langzamer spreken?" },
       { nl: "Spreekt u Engels?", en: "Do you speak English?" },
       { nl: "Dank u wel.", en: "Thank you very much." },
       { nl: "Graag gedaan.", en: "You're welcome." },

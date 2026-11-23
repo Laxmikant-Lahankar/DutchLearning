@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getLesson } from "@/lib/lessons";
+import { ArrowLeftIcon } from "@/app/icons";
+import { LESSONS, getLesson } from "@/lib/lessons";
 import { doneSkills, getMyProgress } from "@/lib/progress";
 import { LessonPlayer } from "./lesson-player";
 
@@ -18,14 +19,18 @@ export default async function LessonPage({ params }: Props) {
   const lesson = getLesson((await params).lessonId);
   if (!lesson) notFound();
   const done = [...doneSkills(await getMyProgress(), lesson.id)];
+  const number = LESSONS.indexOf(lesson) + 1;
+  const following = LESSONS[number];
+  const nextLesson = following ? { id: following.id, title: following.title } : null;
 
   return (
-    <section className="section">
-      <div className="container narrow">
-        <p><Link href="/learn">← My lessons</Link></p>
-        <h1><span aria-hidden="true">{lesson.emoji} </span>{lesson.title}</h1>
-        <LessonPlayer lesson={lesson} initialDone={done} />
-      </div>
-    </section>
+    <div className="container measure">
+      <header className="page-head">
+        <Link className="back-link" href="/learn"><ArrowLeftIcon /> My lessons</Link>
+        <p className="eyebrow" style={{ marginTop: "var(--space-3)" }}>Lesson {number} · A1</p>
+        <h1>{lesson.title}</h1>
+      </header>
+      <LessonPlayer lesson={lesson} initialDone={done} nextLesson={nextLesson} />
+    </div>
   );
 }
