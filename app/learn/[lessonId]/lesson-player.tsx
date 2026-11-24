@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { NoDutchVoiceNotice } from "@/app/dutch-voice";
 import { CheckIcon } from "@/app/icons";
 import type { Lesson, Skill } from "@/lib/lessons";
 import { SKILLS } from "@/lib/lessons";
@@ -94,6 +95,7 @@ export function LessonPlayer({
 
   return (
     <>
+      <NoDutchVoiceNotice />
       <div className="tabs" role="tablist" aria-label="Skills">
         {SKILLS.map((s) => (
           <button
