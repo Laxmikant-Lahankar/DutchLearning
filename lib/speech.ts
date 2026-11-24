@@ -1,35 +1,65 @@
 /**
  * Browser speech helpers (client only).
- * Listening uses the device's own voice for now; pre-generated neural audio is R-LS-04.
+ * Listening uses the device's own Dutch voice for now; pre-generated neural audio (R-LS-04) will
+ * make it sound the same on every device.
  * Speaking uses the browser's recognition; server transcription is R-SP-04.
  */
 
-export const DUTCH = "nl-BE";
+import { chooseDutchVoice } from "./voices";
 
-function pickVoice(): SpeechSynthesisVoice | undefined {
-  const voices = window.speechSynthesis.getVoices();
-  return (
-    voices.find((v) => v.lang.replace("_", "-") === "nl-BE") ??
-    voices.find((v) => v.lang.replace("_", "-") === "nl-NL") ??
-    voices.find((v) => v.lang.toLowerCase().startsWith("nl"))
-  );
-}
+export const DUTCH = "nl-BE";
 
 export function canSpeak(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
 }
 
-/** Plays a Dutch phrase. A new call stops whatever was playing (R-RD-01). */
-export function speakDutch(text: string, rate = 0.95): void {
-  if (!canSpeak()) return;
+let voicesPromise: Promise<SpeechSynthesisVoice[]> | null = null;
+
+/**
+ * Browsers fill the voice list asynchronously: getVoices() is often empty on the first call,
+ * which made the first tap fall back to the default (English) voice. Wait for it, briefly.
+ */
+export function loadVoices(timeoutMs = 2000): Promise<SpeechSynthesisVoice[]> {
+  if (!canSpeak()) return Promise.resolve([]);
+  const synth = window.speechSynthesis;
+  const now = synth.getVoices();
+  if (now.length) return Promise.resolve(now);
+  voicesPromise ??= new Promise((resolve) => {
+    const done = () => {
+      synth.removeEventListener("voiceschanged", done);
+      clearTimeout(timer);
+      const list = synth.getVoices();
+      if (!list.length) voicesPromise = null; // try again next time
+      resolve(list);
+    };
+    const timer = setTimeout(done, timeoutMs);
+    synth.addEventListener("voiceschanged", done);
+  });
+  return voicesPromise;
+}
+
+/** Whether this device can speak Dutch with a real Dutch voice. */
+export async function hasDutchVoice(): Promise<boolean> {
+  return chooseDutchVoice(await loadVoices()) !== undefined;
+}
+
+/**
+ * Plays a Dutch phrase with a Dutch voice. A new call stops whatever was playing (R-RD-01).
+ * Returns false, and stays silent, when the device has no Dutch voice: reading Dutch with an
+ * English voice teaches the wrong sounds.
+ */
+export async function speakDutch(text: string, rate = 0.95): Promise<boolean> {
+  if (!canSpeak()) return false;
   const synth = window.speechSynthesis;
   synth.cancel();
+  const voice = chooseDutchVoice(await loadVoices());
+  if (!voice) return false;
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = DUTCH;
-  const voice = pickVoice();
-  if (voice) utterance.voice = voice;
+  utterance.voice = voice;
+  utterance.lang = voice.lang;
   utterance.rate = rate;
   synth.speak(utterance);
+  return true;
 }
 
 export function stopSpeaking(): void {
